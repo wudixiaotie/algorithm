@@ -11,7 +11,7 @@ start () ->
 get_info_from_db () ->
     <<A:32, B:32, C:32>> = crypto:strong_rand_bytes (12),
     random:seed (A, B, C),
-    Random = random:uniform(100),
+    Random = random:uniform(1000),
     {ok, Random}.
 
 spawn_worker (Count, CollectorPid) ->
