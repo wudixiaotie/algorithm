@@ -17,7 +17,7 @@ t (M, F, A, N) ->
 
 
 tc (M, F, A) ->
-    {MS, ok} = timer:tc (M, F, A),
+    {MS, _} = timer:tc (M, F, A),
     MS.
 
 
