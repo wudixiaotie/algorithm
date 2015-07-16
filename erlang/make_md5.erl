@@ -6,8 +6,8 @@ md5_hex_16(Bin) ->
     erlang:md5(Bin).
 
 md5_hex_32(Bin) ->
-    B = erlang:md5(Data),
-    << <<(hex(A)), (hex(B))>> || <<A:4,B:4>> <= B >>.
+    MD5_16 = md5_hex_16(Data),
+    << <<(hex(A)), (hex(B))>> || <<A:4,B:4>> <= MD5_16 >>.
 
 
 hex(0)  -> $0;
