@@ -9,7 +9,8 @@
 -export ([init/1, handle_call/3, handle_cast/2, handle_info/2,
           terminate/2, code_change/3]).
 
--record (state, {index :: integer (),
+-record (state, {supervisor :: atom(),
+                 index :: integer (),
                  pool :: pid (),
                  pool_size :: integer (),
                  host :: list (),
@@ -37,8 +38,10 @@ expand (ServerName, N) ->
 
 init ([ServerName, Host, Port, PoolSize]) ->
     Pool = ets:new (ServerName, [public]),
-    new_connection (Pool, Host, Port, PoolSize),
-    State = #state{index = 1, pool = Pool, pool_size = PoolSize, host = Host, port = Port},
+    Supervisor = list_to_atom(atom_to_list(ServerName) ++ "_sup"),
+    ssdb_conn_sup:start_link(Supervisor),
+    new_connection (Supervisor, Pool, Host, Port, PoolSize),
+    State = #state{supervisor = Supervisor, index = 1, pool = Pool, pool_size = PoolSize, host = Host, port = Port},
     {ok, State}.
 
 
@@ -47,9 +50,9 @@ handle_call (get_conn, _From, State) ->
     C = ets:lookup_element (State#state.pool, Index, 2),
     {reply, {ok, C}, State#state{index = Index + 1}};
 handle_call ({expand_pool, N}, _From,
-    #state{pool = Pool, pool_size = PoolSize, host = Host, port = Port} = State) ->
+    #state{supervisor = Supervisor, pool = Pool, pool_size = PoolSize, host = Host, port = Port} = State) ->
     NewPoolSize = PoolSize + N,
-    new_connection (Pool, Host, Port, NewPoolSize, PoolSize + 1),
+    new_connection (Supervisor, Pool, Host, Port, NewPoolSize, PoolSize + 1),
     NewState = State#state{pool_size = NewPoolSize},
     {reply, ok, NewState};
 handle_call (_Request, _From, State) -> {reply, nomatch, State}.
@@ -64,9 +67,9 @@ code_change (_OldVer, State, _Extra) -> {ok, State}.
 %% ===================================================================
 %% Internal functions
 %% ===================================================================
-new_connection (Pool, Host, Port, N) ->
-    new_connection (Pool, Host, Port, N, 1).
-new_connection (Pool, Host, Port, N, Index) when Index =< N ->
-    supervisor:start_child (ssdb_conn_sup, [Pool, Host, Port, Index]),
-    new_connection (Pool, Host, Port, N, Index + 1);
-new_connection (_, _, _, _, _) -> ok.
+new_connection (Supervisor, Pool, Host, Port, N) ->
+    new_connection (Supervisor, Pool, Host, Port, N, 1).
+new_connection (Supervisor, Pool, Host, Port, N, Index) when Index =< N ->
+    supervisor:start_child (Supervisor, [Pool, Host, Port, Index]),
+    new_connection (Supervisor, Pool, Host, Port, N, Index + 1);
+new_connection (_, _, _, _, _, _) -> ok.
