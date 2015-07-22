@@ -37,6 +37,8 @@ expand (ServerName, N) ->
 %% ===================================================================
 
 init ([ServerName, Host, Port, PoolSize]) ->
+    SupName = list_to_atom(atom_to_list(ServerName) ++ "_sup"),
+    ssdb_conn_sup:start_link (SupName),
     Pool = ets:new (ServerName, [public]),
     Supervisor = list_to_atom(atom_to_list(ServerName) ++ "_sup"),
     ssdb_conn_sup:start_link(Supervisor),
@@ -67,6 +69,7 @@ code_change (_OldVer, State, _Extra) -> {ok, State}.
 %% ===================================================================
 %% Internal functions
 %% ===================================================================
+
 new_connection (Supervisor, Pool, Host, Port, N) ->
     new_connection (Supervisor, Pool, Host, Port, N, 1).
 new_connection (Supervisor, Pool, Host, Port, N, Index) when Index =< N ->
