@@ -12,11 +12,12 @@ tc(M, F, A) ->
 %% ===================================================================
 
 t(M, F, A, N) ->
-    {Max, Min, Aver} = loop ({M, F, A}, N),
+    {Max, Min, Sum, Aver} = loop ({M, F, A}, N),
     io:format ("=====================~n"),
     io:format ("execute [~p] times of {~p, ~p ~p}:~n", [M, F, A, N]),
     io:format ("Maximum: ~p(微秒)\t~p(秒)~n", [Max, Max / 1000000]),
     io:format ("Minimum: ~p(微秒)\t~p(秒)~n", [Min, Min / 1000000]),
+    io:format ("Sum: ~p(微秒)\t~p(秒)~n", [Sum, Sum / 1000000]),
     io:format ("Average: ~p(微秒)\t~p(秒)~n", [Aver, Aver / 1000000]),
     io:format ("=====================~n").
 
@@ -42,18 +43,19 @@ loop({M, F, A}, N, I, Max, Min, Sum) when N >= I ->
     end,
     loop ({M, F, A}, N, I + 1, NewMax, NewMin, NewSum);
 loop({_M, _F, _A}, N, _I, Max, Min, Sum) ->
-    {Max, Min, Sum / N}.
+    {Max, Min, Sum, Sum / N}.
 
 %% ===================================================================
 %% Concurrency test: N processes each test one time
 %% ===================================================================
 
 ct(M, F, A, N) ->
-    {Max, Min, Aver} = cloop ({M, F, A}, N),
+    {Max, Min, Sum, Aver} = cloop ({M, F, A}, N),
     io:format ("=====================~n"),
     io:format ("spawn [~p] processes of {~p, ~p ~p}:~n", [M, F, A, N]),
     io:format ("Maximum: ~p(微秒)\t~p(秒)~n", [Max, Max / 1000000]),
     io:format ("Minimum: ~p(微秒)\t~p(秒)~n", [Min, Min / 1000000]),
+    io:format ("Sum: ~p(微秒)\t~p(秒)~n", [Sum, Sum / 1000000]),
     io:format ("Average: ~p(微秒)\t~p(秒)~n", [Aver, Aver / 1000000]),
     io:format ("=====================~n").
 
@@ -94,7 +96,7 @@ collector(Max, Min, Sum, N, I) when N >= I ->
             ok
     end;
 collector(Max, Min, Sum, N, _) ->
-    {Max, Min, Sum / N}.
+    {Max, Min, Sum, Sum / N}.
 
 
 worker({M, F, A}, CollectorPid) ->
