@@ -14,7 +14,7 @@ tc(M, F, A) ->
 t(M, F, A, N) ->
     {Max, Min, Sum, Aver} = loop ({M, F, A}, N),
     io:format ("=====================~n"),
-    io:format ("execute [~p] times of {~p, ~p ~p}:~n", [M, F, A, N]),
+    io:format ("execute [~p] times of {~p, ~p ~p}:~n", [N, M, F, A]),
     io:format ("Maximum: ~p(微秒)\t~p(秒)~n", [Max, Max / 1000000]),
     io:format ("Minimum: ~p(微秒)\t~p(秒)~n", [Min, Min / 1000000]),
     io:format ("Sum: ~p(微秒)\t~p(秒)~n", [Sum, Sum / 1000000]),
@@ -52,7 +52,7 @@ loop({_M, _F, _A}, N, _I, Max, Min, Sum) ->
 ct(M, F, A, N) ->
     {Max, Min, Sum, Aver} = cloop ({M, F, A}, N),
     io:format ("=====================~n"),
-    io:format ("spawn [~p] processes of {~p, ~p ~p}:~n", [M, F, A, N]),
+    io:format ("spawn [~p] processes of {~p, ~p ~p}:~n", [N, M, F, A]),
     io:format ("Maximum: ~p(微秒)\t~p(秒)~n", [Max, Max / 1000000]),
     io:format ("Minimum: ~p(微秒)\t~p(秒)~n", [Min, Min / 1000000]),
     io:format ("Sum: ~p(微秒)\t~p(秒)~n", [Sum, Sum / 1000000]),
