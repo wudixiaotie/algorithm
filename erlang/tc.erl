@@ -1,3 +1,12 @@
+%% ===================================================================
+%% Author xiaotie
+%% 2015-07-30
+%% 单进程循环测试：LoopTimes是循环次数
+%% tc:t(Module, Function, ArgsList, LoopTimes).
+%% 多进程并发测试：SpawnProcessesCount是并发的进程数
+%% tc:ct(Module, Function, ArgsList, SpawnProcessesCount).
+%% ===================================================================
+
 -module (tc).
 
 -export ([t/4, ct/4]).
