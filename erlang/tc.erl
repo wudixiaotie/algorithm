@@ -35,7 +35,7 @@ distribution([], _Aver, Greater, Less) ->
 t(M, F, A, N) ->
     {Max, Min, Sum, Aver, Greater, Less} = loop ({M, F, A}, N),
     io:format ("=====================~n"),
-    io:format ("execute [~p] times of {~p, ~p ~p}:~n", [N, M, F, A]),
+    io:format ("execute [~p] times of {~p, ~p, ~p}:~n", [N, M, F, A]),
     io:format ("Maximum: ~p(μs)\t~p(s)~n", [Max, Max / 1000000]),
     io:format ("Minimum: ~p(μs)\t~p(s)~n", [Min, Min / 1000000]),
     io:format ("Sum: ~p(μs)\t~p(s)~n", [Sum, Sum / 1000000]),
@@ -76,7 +76,7 @@ loop({_M, _F, _A}, N, _I, Max, Min, Sum, List) ->
 ct(M, F, A, N) ->
     {Max, Min, Sum, Aver, Greater, Less} = cloop ({M, F, A}, N),
     io:format ("=====================~n"),
-    io:format ("spawn [~p] processes of {~p, ~p ~p}:~n", [N, M, F, A]),
+    io:format ("spawn [~p] processes of {~p, ~p, ~p}:~n", [N, M, F, A]),
     io:format ("Maximum: ~p(μs)\t~p(s)~n", [Max, Max / 1000000]),
     io:format ("Minimum: ~p(μs)\t~p(s)~n", [Min, Min / 1000000]),
     io:format ("Sum: ~p(μs)\t~p(s)~n", [Sum, Sum / 1000000]),
@@ -87,16 +87,23 @@ ct(M, F, A, N) ->
 
 cloop({M, F, A}, N) ->
     CollectorPid = self(),
-    ok = loop_spawn({M, F, A}, CollectorPid, N),
+    PidList = loop_spawn({M, F, A}, CollectorPid, N, []),
+    % ok = loop_triger(PidList),
+    [H!a || H <- PidList],
     collector(0, 0, 0, N, 1, []).
 
 
-loop_spawn({M, F, A}, CollectorPid, N) when N > 0 ->
-    spawn(fun() -> worker({M, F, A}, CollectorPid) end),
-    loop_spawn({M, F, A}, CollectorPid, N - 1);
-loop_spawn(_, _, 0) ->
-    ok.
+loop_spawn({M, F, A}, CollectorPid, N, PidList) when N > 0 ->
+    Pid = spawn_link(fun() -> receive _ -> worker({M, F, A}, CollectorPid) end end),
+    loop_spawn({M, F, A}, CollectorPid, N - 1, [Pid|PidList]);
+loop_spawn(_, _, 0, PidList) ->
+    PidList.
 
+% loop_triger([H|T]) ->
+%     H ! a,
+%     loop_triger(T);
+% loop_triger([]) ->
+%     ok.
 
 collector(Max, Min, Sum, N, I, List) when N >= I ->
     receive
@@ -117,7 +124,7 @@ collector(Max, Min, Sum, N, I, List) when N >= I ->
             end,
             collector(NewMax, NewMin, NewSum, N, I + 1, [Microsecond|List])
     after
-        5000 ->
+        10000 ->
             ok
     end;
 collector(Max, Min, Sum, N, _, List) ->
